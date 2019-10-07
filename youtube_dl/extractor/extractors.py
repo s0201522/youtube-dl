@@ -728,6 +728,7 @@ from .newstube import NewstubeIE
 from .nextmedia import (
     NextMediaIE,
     NextMediaActionNewsIE,
+    NextMediaNextPlusIE,
     AppleDailyIE,
     NextTVIE,
 )

@@ -15,18 +15,18 @@ from ..utils import (
 
 class NextMediaIE(InfoExtractor):
     IE_DESC = '蘋果日報'
-    _VALID_URL = r'https?://hk\.apple\.nextmedia\.com/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)'
+    _VALID_URL = r'https?://hk\.news\.appledaily\.com/[^/]+/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)'
     _TESTS = [{
-        'url': 'http://hk.apple.nextmedia.com/realtime/news/20141108/53109199',
-        'md5': 'dff9fad7009311c421176d1ac90bfe4f',
+        'url': 'https://hk.news.appledaily.com/breaking/realtime/article/20190902/60003199',
+        'md5': '04fd0da57652917937851bdb09b3fa8e',
         'info_dict': {
-            'id': '53109199',
+            'id': '60003199',
             'ext': 'mp4',
-            'title': '【佔領金鐘】50外國領事議員撐場 讚學生勇敢香港有希望',
+            'title': '【逆權運動】白衣男問防暴警「係咪跌咗良心」 竟遭無理毆打至頭破血流',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'description': 'md5:28222b9912b6665a21011b034c70fcc7',
-            'timestamp': 1415456273,
-            'upload_date': '20141108',
+            'description': 'md5:c5a046466b9cef91b2ff29f749aed7b7',
+            'timestamp': 1567410104,
+            'upload_date': '20190902',
         }
     }]
 
@@ -38,12 +38,6 @@ class NextMediaIE(InfoExtractor):
         return self._extract_from_nextmedia_page(news_id, url, page)
 
     def _extract_from_nextmedia_page(self, news_id, url, page):
-        redirection_url = self._search_regex(
-            r'window\.location\.href\s*=\s*([\'"])(?P<url>(?!\1).+)\1',
-            page, 'redirection URL', default=None, group='url')
-        if redirection_url:
-            return self.url_result(compat_urlparse.urljoin(url, redirection_url))
-
         title = self._fetch_title(page)
         video_url = self._search_regex(self._URL_PATTERN, page, 'video url')
 
@@ -59,7 +53,7 @@ class NextMediaIE(InfoExtractor):
         if timestamp:
             attrs['timestamp'] = timestamp
         else:
-            attrs['upload_date'] = self._fetch_upload_date(url)
+            attrs['upload_date'] = self._fetch_upload_date(page, url)
 
         return attrs
 
@@ -70,10 +64,10 @@ class NextMediaIE(InfoExtractor):
         return self._og_search_thumbnail(page)
 
     def _fetch_timestamp(self, page):
-        dateCreated = self._search_regex('"dateCreated":"([^"]+)"', page, 'created time')
+        dateCreated = self._search_regex('"dateCreated"\s*:\s*"([^"]+)"', page, 'created time')
         return parse_iso8601(dateCreated)
 
-    def _fetch_upload_date(self, url):
+    def _fetch_upload_date(self, page, url):
         return self._search_regex(self._VALID_URL, url, 'upload date', group='date')
 
     def _fetch_description(self, page):
@@ -82,20 +76,22 @@ class NextMediaIE(InfoExtractor):
 
 class NextMediaActionNewsIE(NextMediaIE):
     IE_DESC = '蘋果日報 - 動新聞'
-    _VALID_URL = r'https?://hk\.dv\.nextmedia\.com/actionnews/[^/]+/(?P<date>\d+)/(?P<id>\d+)/\d+'
+    _VALID_URL = r'https?://hk\.video\.appledaily\.com/actionnews/[^/]+/(?P<date>\d+)/(?P<id>\d+)/\d+'
     _TESTS = [{
-        'url': 'http://hk.dv.nextmedia.com/actionnews/hit/20150121/19009428/20061460',
-        'md5': '05fce8ffeed7a5e00665d4b7cf0f9201',
+        'url': 'https://hk.video.appledaily.com/actionnews/international/20191007/60120614/61418688',
+        'md5': 'b81cee4d41e3e375cdda9428d1275ed2',
         'info_dict': {
-            'id': '19009428',
+            'id': '60120614',
             'ext': 'mp4',
-            'title': '【壹週刊】細10年男友偷食　50歲邵美琪再失戀',
+            'title': '【今日笑一笑】唔知汪星人真傻定扮蠢 當小主子cushion咁坐',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'description': 'md5:cd802fad1f40fd9ea178c1e2af02d659',
-            'timestamp': 1421791200,
-            'upload_date': '20150120',
+            'description': 'md5:3ee1349482dbb08d2aa4dde53e9e69d6',
+            'upload_date': '20191007',
         }
     }]
+
+    def _fetch_timestamp(self, page):
+        return None
 
     def _real_extract(self, url):
         news_id = self._match_id(url)
@@ -103,6 +99,31 @@ class NextMediaActionNewsIE(NextMediaIE):
         article_url = self._og_search_url(actionnews_page)
         article_page = self._download_webpage(article_url, news_id)
         return self._extract_from_nextmedia_page(news_id, url, article_page)
+
+
+class NextMediaNextPlusIE(NextMediaIE):
+    IE_DESC = '壹週刊'
+    _VALID_URL = r'https?://nextplus\.nextmedia\.com/article/(?P<id>\w+)'
+    _TESTS = [{
+        'url': 'https://nextplus.nextmedia.com/article/2_685517_0',
+        'md5': 'd1fe757efa6e46cdb0f4319af296ad87',
+        'info_dict': {
+            'id': '2_685517_0',
+            'ext': 'mp4',
+            'title': '【803旺角遊行】警察Goodest English︰We are not a background ar! I am working ar!｜壹週刊',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'description': 'md5:5db7bcd95db089c2c887f2b41636a7a5',
+            'upload_date': '20190803',
+        }
+    }]
+
+    _URL_PATTERN = r'\'VIDEO-PATH=([^\']+)\''
+
+    def _fetch_timestamp(self, page):
+        return None
+
+    def _fetch_upload_date(self, page, url):
+        return self._search_regex('var issueId = "(?P<date>\d+)"', page, 'upload date', group='date')
 
 
 class AppleDailyIE(NextMediaIE):
